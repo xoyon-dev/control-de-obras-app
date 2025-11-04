@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Filament\Resources\Obras\RelationManagers;
-
+use App\Models\Obrero;
+use App\Models\ElementoFundible;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -27,12 +28,11 @@ class ObraElementoFundiblesRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('elemento_fundible_id')
-                    ->required()
-                    ->numeric(),
+                Select::make('elemento_fundible_id')
+                ->options(ElementoFundible::pluck('name', 'id')->toArray()),
                 DateTimePicker::make('fecha_hora_fundicion'),
-                TextInput::make('obrero_id')
-                    ->numeric(),
+                Select::make('obrero_id')
+                ->options(Obrero::pluck('name', 'id')->toArray()),
                 TextInput::make('numero_boleta'),
                 DatePicker::make('fecha_verificacion'),
                 TextInput::make('cantidad_psi_utilizado')
@@ -54,15 +54,17 @@ class ObraElementoFundiblesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('obraElementosFundibles')
             ->columns([
-                TextColumn::make('elemento_fundible_id')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('elementoFundible.name')
+                    ->label('Elemento Fundible')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('fecha_hora_fundicion')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('obrero_id')
-                    ->numeric()
-                    ->sortable(),
+               TextColumn::make('obrero.name')
+                    ->label('Obrero')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('numero_boleta')
                     ->searchable(),
                 TextColumn::make('fecha_verificacion')
