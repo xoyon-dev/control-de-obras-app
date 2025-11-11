@@ -22,6 +22,8 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
+
 
 class ObraElementoFundiblesRelationManager extends RelationManager
 {
@@ -117,11 +119,17 @@ class ObraElementoFundiblesRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                ->after(function ($record) {
+                        $this->checkAndFlash($record);
+                    }),
                 AssociateAction::make(),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                ->after(function ($record) {
+                        $this->checkAndFlash($record);
+                    }),
                 DissociateAction::make(),
                 DeleteAction::make(),
             ])
@@ -170,5 +178,23 @@ class ObraElementoFundiblesRelationManager extends RelationManager
         $resultado = $cantidad * $multiplier;
 
         $set('resultado_ensayo_requerido', round($resultado, 2));
+    }
+        private function checkAndFlash($record): void
+    {
+        if (! isset($record->resultado_ensayo_requerido) || ! isset($record->resultado_ensayo_obtenido)) {
+            return;
+        }
+
+        if (! is_numeric($record->resultado_ensayo_requerido) || ! is_numeric($record->resultado_ensayo_obtenido)) {
+            return;
+        }
+
+        if ($record->resultado_ensayo_requerido > $record->resultado_ensayo_obtenido) {
+            Notification::make()
+                ->title('Resultado fuera de rango')
+                ->danger()
+                ->body('El resultado obtenido es menor que el requerido. Por favor verifique el motivo.')
+                ->send();
+        }
     }
 }
